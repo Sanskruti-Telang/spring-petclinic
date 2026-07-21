@@ -1,16 +1,21 @@
-name: Build Spring Boot
+name: build spring-boot
 
 on:
   push:
     branches:
       - main
 
+env:
+  image_name: spring-boot
+  docker_org: sanskrutitelang
+  image_version: 1.0.0
+
 jobs:
   build_and_publish_image:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo branch
+      - name: Checkout repo
         uses: actions/checkout@v4
 
       - name: Install Docker Buildx
@@ -19,8 +24,12 @@ jobs:
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.SANITELANG }}
+          username: ${{ vars.DOCKER_SANITELANG }}
           password: ${{ secrets.DOCKER_PAT }}
 
-      - name: Build Spring application
-        run: docker build -t sanitelang/spring-boot:1.0.0 .
+      - name: Build and push
+        if: ${{ github.ref_name == 'main' }}
+        uses: docker/build-push-action@v7
+        with:
+          push: true
+          tags: ${{ env.docker_org }}/${{ env.image_name }}:${{ env.image_version }}-build-${{ github.run_number }}
