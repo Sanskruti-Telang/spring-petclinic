@@ -1,53 +1,68 @@
-name: Maven Build Workflow
+name: maven build workflow
 
 on:
   workflow_dispatch:
-
   push:
-    branches:
-      - "*"
+    branches: '*'
 
 jobs:
   maven_build:
     runs-on: ubuntu-latest
     if: ${{ github.ref_name == 'main' }}
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          repository: spring-projects/spring-petclinic
-          ref: main
-          path: spring-petclinic
+      - name: checkout repo branch
+        uses: actions/checkout@v7
       
-      - name: Find pom.xml
-        run: find $GITHUB_WORKSPACE -name pom.xml
-
-      - name: Install Java and Maven
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y openjdk-17-jdk maven
+    #   - name: java install
+    #     run: |
+    #       sudo apt-get install openjdk-17-jdk -y 
+    #       sudo apt install maven -y
 
       - name: install java and maven
         uses: actions/setup-java@v5
         with:
           java-version: '17'
-          distribution: 'temurin' # See 'Supported distributions' for available options
+          distribution: 'temurin'
           cache: maven
 
-      - name: Show workspace contents
-        run: |
-          echo "Workspace: $GITHUB_WORKSPACE"
-          pwd
-          ls -la
-          find $GITHUB_WORKSPACE -name pom.xml
-
-      - name: Build Maven package
-        working-directory: spring-petclinic
+      - name: build maven package
         run: mvn clean package
 
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+      - name: upload artifacts
+        uses: actions/upload-artifact@v7
         with:
-         name: build-files
-         path: dist/
+          name: spring-jar
+          path: target/*.jar
+          retention-days: 1
+  
+  build_image:
+    needs: maven_build
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout repo branch
+        uses: actions/checkout@v7
+
+      - name: Install docker
+        uses: docker/setup-buildx-action@v4
+        
+      - name: Login to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: sanitelang
+          password: ${{ secrets.DOCKER_PAT }}
+
+      - name: download artifacts
+        uses: actions/download-artifact@v7
+        with:
+          name: spring-jar
+          path: .
+
+      - name: list files
+        run:
+          ls -lrt
+
+      - name: Build and push
+        uses: docker/build-push-action@v7
+        with:
+          push: true
+          tags: sanitelang/spring-boot:1.0.0
