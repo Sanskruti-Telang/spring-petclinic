@@ -7,7 +7,7 @@ on:
 
 env:
   image_name: spring-boot
-  docker_org: sanskrutitelang
+  docker_org: sanitelang
   image_version: 1.0.0
 
 jobs:
