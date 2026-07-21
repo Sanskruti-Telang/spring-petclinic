@@ -5,10 +5,8 @@ RUN apt update && \
 
 WORKDIR /app
 
-COPY . .
+COPY ./spring-petclinic-4.0.0-SNAPSHOT.jar /app
 
-RUN mvn clean package
-
-EXPOSE 8080
+RUN chmod 755 /app/spring-petclinic-4.0.0-SNAPSHOT.jar
 
 CMD ["java", "-jar", "target/spring-petclinic-4.0.0-SNAPSHOT.jar"]
