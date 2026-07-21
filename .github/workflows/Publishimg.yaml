@@ -1,0 +1,22 @@
+name: build spring-boot
+
+on:
+  push:
+    branches: 'main'
+
+jobs:
+    build_and_publish_image:
+    runs_on: ubuntu-latest
+    steps:
+        -name: checkout repo branch
+         uses: actions/checkout@v7
+
+        -name: Install docker
+         uses: docker/setup-buildx-actions@v4
+
+        -name: Login to Docker Hub
+        uses: Docker/login-action@v4
+        with:
+          username: ${{secrets.SANITELANG}}
+          password: ${{secrets.DOCKER_PAT}}
+
